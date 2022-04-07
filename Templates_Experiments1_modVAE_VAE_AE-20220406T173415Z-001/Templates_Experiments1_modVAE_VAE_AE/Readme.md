@@ -7,7 +7,7 @@ directory (corrections needed to be made that I explain below). I added referenc
 For the experiments with the other data sets, we can make a copy of these templates and modify them as needed and run the experiments.
 Please use these templates to move forward with the experiments on Fashion MNIST and CIFAR.
 
-# The following things needed to be corrected:
+### The following things needed to be corrected:
 
 The threshold that we should use should be determined by just the distribution of the reconstruction loss of the training data, 
 which in this experimental design that we are using are just normal instances.
@@ -26,7 +26,7 @@ If the case is that we do not want to miss any anomaly, then we want higher prec
 this distribution would be more appropriate, but in that case, a higher percentage of normal instances will be labeled as abnormal 
 resulting in less recall.
 
-# The other thing is that I did more experiments that showed that:
+### The other thing is that I did more experiments that showed that:
 
 - AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’ has much less reconstruction loss compared to AE with 
   ‘optimizer=’adam’ and loss=’mae’
