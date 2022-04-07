@@ -1,0 +1,90 @@
+This file is available on Google drive.
+
+The majority of this is also on Slack:
+ 
+3/19 -  [For better seeing the results of running this tutorial, I broke down the code in the tutorial (https://www.tensorflow.org/tutorials/generative/autoencoder) (Basic AE, Denoising, and Anomaly detection) into three files (AE_MNIST_Reconst, AE_MNIST_Denoise, and AE_ECG_Anomaly), run them, and put them on the drive.]
+ 
+Then I made several AE for anomaly detection for the MNIST dataset, 5 with dense layers and 5 with convolutional layers with different digits as normal and abnormal, ran them and put them on the shared drive (in the MNIST_Anomaly folder). 
+ 
+- Explained results in the meeting in 3/22:
+ 
+Results: 
+ 
+For AE for MNIST, using Dense layers results in better experimental setup and anomaly detection than Convolutional layers.
+ 
+Likely, because CNNs are too good for MNIST. So, convolutional VAE can reconstruct the abnormal digit also very well. So, this decreases accuracy for anomaly detection. Dense layer VAE is better for anomaly detection for MNIST. 
+ 
+Some pairs of numbers have more differences than others and for this reason, for example, using 1 as normal and 8 as abnormal results in better anomaly detection for AE than 1 and 7 or 2 and 8. 
+ 
+Picking one digit as normal and one as abnormal also works better than picking several as normal and one as abnormal for MNIST and Autoencoders. 
+ 
+But later, for comparison of VAE and modified VAE, 4 as normal and 8 as abnormal were better, likely because training on 4 results in less learning of 8, because of more dissimilarity of image features between these digits.
+ 
+ 
+For other data sets, we need experiments. But initially, please follow the Dense Layer templates in the experiments1 folder.
+ 
+ 
+3/24:
+ 
+Did an implementation of VAE for MNIST based on Geron's book and also implemented anomaly detection with VAE for MNIST. Also did several experiments with changing hyperparameters for the VAE and also a change for AE. Put all the files for the experiments on our shared google drive (in VAE_MNIST_Anomaly and AE_crossentropy_rmsprop_MNIST folders). I will explain all of this in the next meeting. Also we need to do more experiments and also think about how to design the proper experiments to compare VAE and AE for anomaly detection.
+ 
+Results: These were quick and not formally designed experiments to arrive at good experimental conditions and design. In summary:
+ 
+- AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’ has much less reconstruction loss compared to AE with ‘optimizer=’adam’ and loss=’mae’
+ 
+- Later experiments on 4/1 (also explained below) shows that for AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’, the reconstruction loss is actually less than VAE with all the other experimental conditions kept the same (please see the files in templates_experiments1)
+ 
+- But this should be viewed in light of the fact, that is known, that VAE performs better with smaller batch sizes, and keeping the experimental condition of batch size of VAE and AE the same (=512) is not good for the VAE.
+ 
+- But accuracy of anomaly detection is almost the same for both of them (at least for MNIST) for reasons that I explain below.
+ 
+- Increasing the number of epochs decreases the reconstruction loss.
+- Geron sometimes uses ‘metrics=rounded accuracy’ for his VAE, and this results in less reconstruction loss. But for the purpose of consistency of comparison with AE, for the later experiments I did not use this.
+ 
+- Using mse versus mae for measuring reconstruction loss did not result in much difference in the accuracy of anomaly detection for MNIST. So, for later experiments, I kept using mae. Could check if it makes a change in later experiments.
+ 
+- Random seed was removed, because we want our experiments to be stochastic. When we want formal results we should repeat an experiment several times (around 5 times) and report the average. More formal would be to repeat the experiments more and measure statistical significance of any difference.
+ 
+- Increasing the dimensions of the bottleneck for AE decreases the reconstruction loss.
+ 
+- Increasing the coding size (the dimensions of the MVN distribution in the sampling layer) in VAE decreases the reconstruction loss.
+ 
+These were quick preliminary experiments. You can do experiments with changing some of these hyperparameters in other data sets and see what happens. If we decide to have the results of changing some of the hyperparameters in the report, we need to design formal experiments and gather data formally.
+ 
+3/28:
+ 
+I made a modified VAE with superposition of 2 Gaussians in the sampling layer with writing a new loss function for this heuristically and by intuition without formal derivation. I did some experiments with this, 
+ 
+Result 1: This modified VAE with this loss function has a significantly less reconstruction loss compared with regular VAE as measured by the same mean absolute error (MAE) loss for the reconstructions.
+Result 2: However, because MNIST is a simple image data set and its digits do not have complex image features, the modified VAE learns to reconstruct the abnormal digit also better. So, in the case of MNIST, this does not translate to much better anomaly detection. For digit 4 as normal and digit 8 as abnormal, it does result in a better performance on anomaly detection with a small margin (for determining statistical significance of this more measurements are required). 
+ 
+Correction 1: Further experiments showed that
+ 
+- AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’ has much less reconstruction loss compared to AE with ‘optimizer=’adam’ and loss=’mae’
+ 
+- For AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’, the reconstruction loss is actually less than VAE with all the other experimental conditions kept the same (please see the files in templates_experiments1)
+ 
+- But this should be viewed in light of the fact, that is known, that VAE performs better with smaller batch sizes, and keeping the experimental condition of batch size of VAE and AE the same (=512) is not good for the VAE.
+ 
+- But accuracy of anomaly detection is almost the same for both of them (at least for MNIST) for reasons that I explained above.
+ 
+- But reconstruction loss of the modified VAE is still better than AE with ‘optimizer=’rmsprop’ and ‘loss =binary_crossentropy’, even with batch size of 512 (same as the AE). Accuracy of anomaly detection of the modified VAE is also still better by a small margin.
+ 
+Correction 2:
+ 
+- The threshold that we should use should be determined by just the distribution of the reconstruction loss of the training data, which in this experimental design that we are using are just normal instances. [In a real application of the anomaly detection, the model is trained on real data also, for which we do not know the labels. But because the percentage of the abnormal instances are small in the real data also, the model will mostly learn the normal data in that case also.]  The calculation of the threshold should not include threshold2 from the distribution of the reconstruction loss for the test data, because in a real application, we use the model to test the new test instances to determine if they are abnormal one by one as we get them, and so we do not know this distribution.
+ 
+I did some more experiments and setting the threshold as threshold1 = mean + 2.5 * std of the distribution of the reconstruction loss of the training data resulted in a better balance of precision and recall and the best accuracy as far as the experiments showed. If the case is that we do not want to miss any anomaly, then we want higher precision and setting the threshold = mean + 1 * std of this distribution would be more appropriate, but in that case, a higher percentage of normal instances will be labeled as abnormal resulting in less recall.
+ 
+ 
+I put the 3 files (modified VAE, VAE and AE) for this experiment in the folder experiment1 on our shared drive and we can use these 3 files as templates for further experiments. 
+ 
+[Experiment 2 is an extra experiment which is the comparison of this modified VAE and regular VAE for anomaly detection with digits 2 and 7 of MNIST as normal and category 8 of Fashion MNIST (bags) as abnormal.]
+ 
+I think the results for anomaly detection when using one Fashion MNIST category as normal and another Fashion MNIST category as abnormal would be better and maybe it would even be better for CIFAR-10 because of the more complex image features in the pictures in those data sets, but I have not done these experiments.
+ 
+At this point, I think the three templates in the experiment1 folder are now in a good form and can be generalized to the other data sets with modifications as needed. 
+ 
+We also need to focus now on further modifications in the sampling layer and the theoretical treatment of the loss functions. 
+ 
+Results: Please see above. The exact numbers are in the files in experiments1 folder. For determining statistical significance of these results more measurements are required. We can do these formal experiments with the modified sampling layer and the loss function obtained thus far. But we need to first generalize this to the other data sets and see how the loss function does on other data sets and may need to modify it. We also need to formally derive the loss function.
