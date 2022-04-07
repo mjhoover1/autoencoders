@@ -1,6 +1,6 @@
 From Slack:
 
-### (about the sampling layer, reparametrization trick, and implementation of this in the modified VAE)
+### About the sampling layer, reparametrization trick, and implementation of this in the modified VAE
 
 For the regular VAE, let say the coding size (the number of dimensions of the MVN we are training in the sampling layer) is 10.  
 The layers for the means and stds (each having the dimension of the coding size = 10) are parallel in the sampling layer of VAE. 
